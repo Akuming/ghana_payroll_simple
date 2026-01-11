@@ -1,6 +1,9 @@
 import { usePayroll } from './context/PayrollContext'
 import { CompanySettings } from './components/editor/CompanySettings'
 import { EmployeeTable } from './components/editor/EmployeeTable'
+import { ActionBar } from './components/editor/ActionBar'
+import { FileUpload } from './components/upload/FileUpload'
+import { TemplateDownload } from './components/upload/TemplateDownload'
 import { Button } from './components/shared/Button'
 import { Card } from './components/shared/Card'
 import { InfoMessage } from './components/shared/ErrorMessage'
@@ -91,6 +94,9 @@ function App() {
             {/* Company Settings */}
             <CompanySettings />
 
+            {/* Action Bar */}
+            <ActionBar />
+
             {/* Employee Editor */}
             <Card title="Employee Editor" subtitle="Add and manage employee payroll data">
               <EmployeeTable />
@@ -99,64 +105,15 @@ function App() {
         )}
 
         {currentTab === 'upload' && (
-          <Card title="Upload & Process" subtitle="Upload an Excel file for quick payroll processing">
-            <div className="space-y-6">
-              {/* Template Download */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Download Excel Template</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  First time? Download our template to get started
-                </p>
-                <div className="mt-4">
-                  <Button variant="outline">
-                    Download Template
-                  </Button>
-                </div>
-              </div>
+          <div className="space-y-6">
+            {/* Template Download */}
+            <TemplateDownload />
 
-              {/* File Upload */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Upload Excel File</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Drag and drop your file here, or click to browse
-                </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  Accepts .xlsx and .xls files (max 5MB)
-                </p>
-                <div className="mt-4">
-                  <Button variant="primary">
-                    Browse Files
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
+            {/* File Upload */}
+            <Card title="Upload Excel File" subtitle="Upload your filled payroll data">
+              <FileUpload />
+            </Card>
+          </div>
         )}
 
         {currentTab === 'help' && (

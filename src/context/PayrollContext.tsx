@@ -3,6 +3,7 @@ import type { Employee, ProcessedEmployee, ValidationError } from '../types/empl
 import type { CompanySettings } from '../types/company';
 import { getCurrentMonth } from '../utils/formatting';
 import { loadCompanySettings, loadEmployees, saveCompanySettings, saveEmployees } from '../lib/storage';
+import { processEmployee } from '../lib/calculator';
 
 // Application state interface
 export interface AppState {
@@ -38,6 +39,7 @@ export type Action =
   | { type: 'SET_VALIDATION_ERRORS'; payload: ValidationError[] }
   | { type: 'SET_PROCESSING'; payload: boolean }
   | { type: 'SET_GENERATING_PDF'; payload: boolean }
+  | { type: 'RESET_RESULTS' }
   | { type: 'RESET' }
   | { type: 'LOAD_FROM_STORAGE' };
 
@@ -117,6 +119,14 @@ function payrollReducer(state: AppState, action: Action): AppState {
     case 'SET_GENERATING_PDF':
       return { ...state, isGeneratingPDF: action.payload };
 
+    case 'RESET_RESULTS':
+      return {
+        ...state,
+        processedEmployees: null,
+        showResults: false,
+        isProcessing: false
+      };
+
     case 'RESET':
       return initialState;
 
@@ -164,6 +174,17 @@ export function PayrollProvider({ children }: PayrollProviderProps) {
       saveEmployees(state.employees);
     }
   }, [state.employees]);
+
+  // Process payroll when isProcessing is true
+  useEffect(() => {
+    if (state.isProcessing && state.employees.length > 0) {
+      // Process all employees
+      const processed = state.employees.map(emp => processEmployee(emp));
+
+      // Dispatch the processed results
+      dispatch({ type: 'SET_PROCESSED_EMPLOYEES', payload: processed });
+    }
+  }, [state.isProcessing, state.employees]);
 
   return (
     <PayrollStateContext.Provider value={state}>

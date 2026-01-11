@@ -4,6 +4,7 @@ import { EmployeeTable } from './components/editor/EmployeeTable'
 import { ActionBar } from './components/editor/ActionBar'
 import { FileUpload } from './components/upload/FileUpload'
 import { TemplateDownload } from './components/upload/TemplateDownload'
+import { ProcessedResults } from './components/results/ProcessedResults'
 import { Button } from './components/shared/Button'
 import { Card } from './components/shared/Card'
 import { InfoMessage } from './components/shared/ErrorMessage'
@@ -12,7 +13,7 @@ import { getStorageInfo } from './lib/storage'
 
 function App() {
   const [state, dispatch] = usePayroll()
-  const { currentTab, employees } = state
+  const { currentTab, employees, processedEmployees } = state
 
   const storageInfo = getStorageInfo()
 
@@ -90,17 +91,24 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentTab === 'editor' && (
-          <div>
-            {/* Company Settings */}
-            <CompanySettings />
+          <div className="space-y-6">
+            {/* Show results if processed */}
+            {processedEmployees && processedEmployees.length > 0 ? (
+              <ProcessedResults />
+            ) : (
+              <>
+                {/* Company Settings */}
+                <CompanySettings />
 
-            {/* Action Bar */}
-            <ActionBar />
+                {/* Action Bar */}
+                <ActionBar />
 
-            {/* Employee Editor */}
-            <Card title="Employee Editor" subtitle="Add and manage employee payroll data">
-              <EmployeeTable />
-            </Card>
+                {/* Employee Editor */}
+                <Card title="Employee Editor" subtitle="Add and manage employee payroll data">
+                  <EmployeeTable />
+                </Card>
+              </>
+            )}
           </div>
         )}
 

@@ -3,10 +3,11 @@ import { usePayroll } from '../../context/PayrollContext';
 import { Button } from '../shared/Button';
 import { exportToExcel, downloadBlob, generateFilename } from '../../lib/excelHandler';
 import { clearAllData } from '../../lib/storage';
+import { validateEmployees, validateCompanySettings } from '../../lib/validators';
 
 export function ActionBar() {
   const [state, dispatch] = usePayroll();
-  const { employees, companySettings } = state;
+  const { employees, companySettings, isProcessing } = state;
   const [isExporting, setIsExporting] = useState(false);
 
   const handleDownloadExcel = () => {
@@ -41,9 +42,48 @@ export function ActionBar() {
     }
   };
 
+  const handleCalculatePayroll = () => {
+    if (employees.length === 0) {
+      alert('No employees to process. Please add employees first.');
+      return;
+    }
+
+    // Validate company settings
+    const companyErrors = validateCompanySettings(companySettings);
+    if (companyErrors.length > 0) {
+      alert(`Please fix company settings errors:\n${companyErrors.map(e => `- ${e.message}`).join('\n')}`);
+      return;
+    }
+
+    // Validate employees
+    const employeeErrors = validateEmployees(employees);
+    if (employeeErrors.length > 0) {
+      const errorSummary = employeeErrors.slice(0, 5).map(e => `Row ${e.row}: ${e.message}`).join('\n');
+      const hasMore = employeeErrors.length > 5 ? `\n... and ${employeeErrors.length - 5} more errors` : '';
+      alert(`Please fix validation errors before processing:\n\n${errorSummary}${hasMore}`);
+      return;
+    }
+
+    // Process payroll
+    dispatch({ type: 'PROCESS_PAYROLL' });
+  };
+
   return (
     <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 rounded-lg">
       <div className="flex items-center gap-2">
+        <Button
+          onClick={handleCalculatePayroll}
+          variant="primary"
+          size="sm"
+          loading={isProcessing}
+          disabled={employees.length === 0}
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          Calculate Payroll
+        </Button>
+
         <Button
           onClick={handleDownloadExcel}
           variant="outline"

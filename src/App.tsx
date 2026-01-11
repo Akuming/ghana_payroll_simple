@@ -1,5 +1,6 @@
 import { usePayroll } from './context/PayrollContext'
 import { CompanySettings } from './components/editor/CompanySettings'
+import { EmployeeTable } from './components/editor/EmployeeTable'
 import { Button } from './components/shared/Button'
 import { Card } from './components/shared/Card'
 import { InfoMessage } from './components/shared/ErrorMessage'
@@ -90,53 +91,9 @@ function App() {
             {/* Company Settings */}
             <CompanySettings />
 
-            {/* Employee Editor Placeholder */}
+            {/* Employee Editor */}
             <Card title="Employee Editor" subtitle="Add and manage employee payroll data">
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No employees added</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by adding your first employee or uploading an Excel file.
-                </p>
-                <div className="mt-6 flex justify-center gap-4">
-                  <Button variant="primary">
-                    Add Employee
-                  </Button>
-                  <Button variant="outline">
-                    Upload Excel
-                  </Button>
-                </div>
-              </div>
-
-              {/* Stats when employees exist */}
-              {employees.length > 0 && (
-                <div className="mt-6 grid grid-cols-3 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Total Employees</div>
-                    <div className="text-2xl font-semibold text-gray-900">{employees.length}</div>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Valid Records</div>
-                    <div className="text-2xl font-semibold text-green-600">{employees.length}</div>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Errors</div>
-                    <div className="text-2xl font-semibold text-red-600">0</div>
-                  </div>
-                </div>
-              )}
+              <EmployeeTable />
             </Card>
           </div>
         )}

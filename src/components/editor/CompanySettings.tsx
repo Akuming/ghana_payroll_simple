@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { usePayrollState, usePayrollDispatch } from '../../context/PayrollContext';
 import { Input } from '../shared/Input';
 import { validateCompanySettings } from '../../lib/validators';
-import { getCurrentMonth } from '../../utils/formatting';
 
 export function CompanySettings() {
   const state = usePayrollState();

@@ -2,6 +2,8 @@ import { describe, test, expect } from 'vitest';
 import {
   calculatePAYE,
   calculateSSNIT,
+  calculateBonusTax,
+  calculateOvertimePay,
   processEmployee,
   processEmployees,
   calculateSummaryTotals,
@@ -348,5 +350,162 @@ describe('calculateSummaryTotals', () => {
     expect(totals.totalSSNIT).toBe(
       round(totals.totalSSNITEmployee + totals.totalSSNITEmployer, 2)
     );
+  });
+});
+
+describe('calculateBonusTax', () => {
+  test('calculates 5% tax on bonus', () => {
+    expect(calculateBonusTax(1000)).toBe(50.00);
+    expect(calculateBonusTax(500)).toBe(25.00);
+  });
+
+  test('returns 0 for zero bonus', () => {
+    expect(calculateBonusTax(0)).toBe(0);
+  });
+
+  test('returns 0 for negative bonus', () => {
+    expect(calculateBonusTax(-100)).toBe(0);
+  });
+
+  test('rounds correctly', () => {
+    expect(calculateBonusTax(333.33)).toBe(16.67); // 333.33 * 0.05 = 16.6665
+  });
+});
+
+describe('calculateOvertimePay', () => {
+  test('calculates overtime at 1.5x hourly rate', () => {
+    // Basic: 5000, Standard hours: 176
+    // Hourly rate = 5000 / 176 = 28.409...
+    // Overtime pay = 10 * 28.409 * 1.5 = 426.14
+    const result = calculateOvertimePay(5000, 10);
+    expect(result).toBe(426.14);
+  });
+
+  test('returns 0 for zero overtime hours', () => {
+    expect(calculateOvertimePay(5000, 0)).toBe(0);
+  });
+
+  test('returns 0 for negative overtime hours', () => {
+    expect(calculateOvertimePay(5000, -5)).toBe(0);
+  });
+
+  test('returns 0 for zero basic salary', () => {
+    expect(calculateOvertimePay(0, 10)).toBe(0);
+  });
+
+  test('handles fractional overtime hours', () => {
+    // 5.5 hours at 1.5x rate
+    const result = calculateOvertimePay(5000, 5.5);
+    expect(result).toBe(234.38); // 5.5 * (5000/176) * 1.5
+  });
+});
+
+describe('processEmployee with bonus and overtime', () => {
+  test('employee with bonus only', () => {
+    const employee: Employee = {
+      employee_name: 'Bonus Employee',
+      tin: 'P0011111111',
+      ssnit_number: 'C00111111111',
+      basic_salary: 5000,
+      allowances: 500,
+      bonus: 1000
+    };
+
+    const result = processEmployee(employee);
+
+    expect(result.bonus).toBe(1000);
+    expect(result.bonus_tax).toBe(50.00); // 5% of 1000
+    expect(result.gross_pay).toBe(6500.00); // 5000 + 500 + 1000
+    // Taxable income excludes bonus (taxed separately)
+    expect(result.taxable_income).toBe(5225.00); // 6500 - 275 (SSNIT) - 1000 (bonus)
+    expect(result.total_deductions).toBeGreaterThan(result.ssnit_employee + result.paye); // Includes bonus tax
+  });
+
+  test('employee with overtime only', () => {
+    const employee: Employee = {
+      employee_name: 'Overtime Employee',
+      tin: 'P0022222222',
+      ssnit_number: 'C00222222222',
+      basic_salary: 5000,
+      allowances: 500,
+      overtime_hours: 10
+    };
+
+    const result = processEmployee(employee);
+
+    expect(result.overtime_hours).toBe(10);
+    expect(result.overtime_pay).toBe(426.14); // 10 * (5000/176) * 1.5
+    expect(result.gross_pay).toBe(5926.14); // 5000 + 500 + 426.14 = 5926.14
+    // Overtime is taxed through PAYE (included in taxable income)
+    expect(result.taxable_income).toBe(5651.14); // 5926.14 - 275 (SSNIT)
+  });
+
+  test('employee with both bonus and overtime', () => {
+    const employee: Employee = {
+      employee_name: 'Full Compensation',
+      tin: 'P0033333333',
+      ssnit_number: 'C00333333333',
+      basic_salary: 5000,
+      allowances: 500,
+      bonus: 1000,
+      overtime_hours: 10
+    };
+
+    const result = processEmployee(employee);
+
+    expect(result.overtime_pay).toBe(426.14);
+    expect(result.bonus_tax).toBe(50.00);
+    // Gross = 5000 + 500 + 426.14 + 1000 = 6926.14
+    expect(result.gross_pay).toBe(6926.14);
+    // Taxable = gross - SSNIT - bonus = 6926.14 - 275 - 1000 = 5651.14
+    expect(result.taxable_income).toBe(5651.14);
+    // Total deductions = SSNIT + PAYE + bonus tax
+    expect(result.total_deductions).toBe(
+      round(result.ssnit_employee + result.paye + result.bonus_tax, 2)
+    );
+  });
+
+  test('employee without bonus or overtime', () => {
+    const employee: Employee = {
+      employee_name: 'Regular Employee',
+      tin: 'P0044444444',
+      ssnit_number: 'C00444444444',
+      basic_salary: 5000,
+      allowances: 500
+    };
+
+    const result = processEmployee(employee);
+
+    expect(result.overtime_pay).toBe(0);
+    expect(result.bonus_tax).toBe(0);
+    expect(result.gross_pay).toBe(5500.00);
+  });
+
+  test('summary totals include bonus and overtime', () => {
+    const employees: Employee[] = [
+      {
+        employee_name: 'Employee 1',
+        tin: 'P0011111111',
+        ssnit_number: 'C00111111111',
+        basic_salary: 5000,
+        allowances: 500,
+        bonus: 1000,
+        overtime_hours: 10
+      },
+      {
+        employee_name: 'Employee 2',
+        tin: 'P0022222222',
+        ssnit_number: 'C00222222222',
+        basic_salary: 4000,
+        bonus: 500
+      }
+    ];
+
+    const processedEmployees = processEmployees(employees);
+    const totals = calculateSummaryTotals(processedEmployees);
+
+    expect(totals.totalBonus).toBe(1500.00);
+    expect(totals.totalOvertimePay).toBeGreaterThan(0);
+    expect(totals.totalBonusTax).toBe(75.00); // 5% of 1500
   });
 });

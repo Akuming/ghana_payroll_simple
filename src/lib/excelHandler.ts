@@ -7,25 +7,29 @@ import type { CompanySettings } from '../types/company';
  * These match the PRD specification
  */
 export const EXCEL_COLUMNS = {
-  // Input columns (A-I)
+  // Input columns (A-K)
   employee_name: 'A',
   employee_id: 'B',
   tin: 'C',
   ssnit_number: 'D',
   basic_salary: 'E',
   allowances: 'F',
-  bank_name: 'G',
-  account_number: 'H',
-  mobile_money: 'I',
+  bonus: 'G',
+  overtime_hours: 'H',
+  bank_name: 'I',
+  account_number: 'J',
+  mobile_money: 'K',
 
-  // Output columns (J-P) - for processed results
-  gross_pay: 'J',
-  ssnit_employee: 'K',
-  ssnit_employer: 'L',
-  taxable_income: 'M',
-  paye: 'N',
-  total_deductions: 'O',
-  net_pay: 'P'
+  // Output columns (L-S) - for processed results
+  overtime_pay: 'L',
+  gross_pay: 'M',
+  ssnit_employee: 'N',
+  ssnit_employer: 'O',
+  taxable_income: 'P',
+  paye: 'Q',
+  bonus_tax: 'R',
+  total_deductions: 'S',
+  net_pay: 'T'
 } as const;
 
 /**
@@ -110,9 +114,11 @@ function parseEmployeesFromRows(rows: any[][], errors: string[]): Employee[] {
         ssnit_number: String(row[3] || '').trim(),
         basic_salary: parseFloat(row[4]) || 0,
         allowances: row[5] !== undefined && row[5] !== '' ? parseFloat(row[5]) : undefined,
-        bank_name: row[6] ? String(row[6]).trim() : undefined,
-        account_number: row[7] ? String(row[7]).trim() : undefined,
-        mobile_money: row[8] ? String(row[8]).trim() : undefined
+        bonus: row[6] !== undefined && row[6] !== '' ? parseFloat(row[6]) : undefined,
+        overtime_hours: row[7] !== undefined && row[7] !== '' ? parseFloat(row[7]) : undefined,
+        bank_name: row[8] ? String(row[8]).trim() : undefined,
+        account_number: row[9] ? String(row[9]).trim() : undefined,
+        mobile_money: row[10] ? String(row[10]).trim() : undefined
       };
 
       employees.push(employee);
@@ -168,6 +174,8 @@ export function exportToExcel(
       'ssnit_number',
       'basic_salary',
       'allowances',
+      'bonus',
+      'overtime_hours',
       'bank_name',
       'account_number',
       'mobile_money'
@@ -180,6 +188,8 @@ export function exportToExcel(
       emp.ssnit_number,
       emp.basic_salary,
       emp.allowances || '',
+      emp.bonus || '',
+      emp.overtime_hours || '',
       emp.bank_name || '',
       emp.account_number || '',
       emp.mobile_money || ''
@@ -196,6 +206,8 @@ export function exportToExcel(
     { wch: 15 }, // ssnit_number
     { wch: 12 }, // basic_salary
     { wch: 12 }, // allowances
+    { wch: 10 }, // bonus
+    { wch: 14 }, // overtime_hours
     { wch: 15 }, // bank_name
     { wch: 15 }, // account_number
     { wch: 12 }  // mobile_money
@@ -245,14 +257,18 @@ export function exportProcessedToExcel(
     'ssnit_number',
     'basic_salary',
     'allowances',
+    'bonus',
+    'overtime_hours',
     'bank_name',
     'account_number',
     'mobile_money',
+    'overtime_pay',
     'gross_pay',
     'ssnit_employee',
     'ssnit_employer',
     'taxable_income',
     'paye',
+    'bonus_tax',
     'total_deductions',
     'net_pay'
   ];
@@ -265,14 +281,18 @@ export function exportProcessedToExcel(
     emp.ssnit_number,
     emp.basic_salary,
     emp.allowances || 0,
+    emp.bonus || 0,
+    emp.overtime_hours || 0,
     emp.bank_name || '',
     emp.account_number || '',
     emp.mobile_money || '',
+    emp.overtime_pay,
     emp.gross_pay,
     emp.ssnit_employee,
     emp.ssnit_employer,
     emp.taxable_income,
     emp.paye,
+    emp.bonus_tax,
     emp.total_deductions,
     emp.net_pay
   ]);
@@ -289,15 +309,19 @@ export function exportProcessedToExcel(
     { wch: 15 }, // ssnit_number
     { wch: 12 }, // basic_salary
     { wch: 12 }, // allowances
+    { wch: 10 }, // bonus
+    { wch: 14 }, // overtime_hours
     { wch: 15 }, // bank_name
     { wch: 15 }, // account_number
     { wch: 12 }, // mobile_money
+    { wch: 12 }, // overtime_pay
     { wch: 12 }, // gross_pay
-    { wch: 12 }, // ssnit_employee
-    { wch: 12 }, // ssnit_employer
-    { wch: 12 }, // taxable_income
+    { wch: 14 }, // ssnit_employee
+    { wch: 14 }, // ssnit_employer
+    { wch: 14 }, // taxable_income
     { wch: 12 }, // paye
-    { wch: 12 }, // total_deductions
+    { wch: 10 }, // bonus_tax
+    { wch: 16 }, // total_deductions
     { wch: 12 }  // net_pay
   ];
 
@@ -340,6 +364,8 @@ export function generateTemplate(): Blob {
       'ssnit_number',
       'basic_salary',
       'allowances',
+      'bonus',
+      'overtime_hours',
       'bank_name',
       'account_number',
       'mobile_money'
@@ -352,6 +378,8 @@ export function generateTemplate(): Blob {
       'C00123456789',
       5000,
       500,
+      1000,
+      10,
       'GCB Bank',
       '1234567890',
       '0241234567'
@@ -368,6 +396,8 @@ export function generateTemplate(): Blob {
     { wch: 15 }, // ssnit_number
     { wch: 12 }, // basic_salary
     { wch: 12 }, // allowances
+    { wch: 10 }, // bonus
+    { wch: 14 }, // overtime_hours
     { wch: 15 }, // bank_name
     { wch: 15 }, // account_number
     { wch: 12 }  // mobile_money

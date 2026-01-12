@@ -136,6 +136,40 @@ export function validateEmployee(employee: Employee, rowIndex: number): Validati
     }
   }
 
+  // Bonus must be non-negative if provided
+  if (employee.bonus !== undefined && employee.bonus !== null) {
+    if (typeof employee.bonus !== 'number' || isNaN(employee.bonus)) {
+      errors.push({
+        row: rowIndex,
+        field: 'bonus',
+        message: 'Bonus must be a valid number'
+      });
+    } else if (employee.bonus < 0) {
+      errors.push({
+        row: rowIndex,
+        field: 'bonus',
+        message: 'Bonus cannot be negative'
+      });
+    }
+  }
+
+  // Overtime hours must be non-negative if provided
+  if (employee.overtime_hours !== undefined && employee.overtime_hours !== null) {
+    if (typeof employee.overtime_hours !== 'number' || isNaN(employee.overtime_hours)) {
+      errors.push({
+        row: rowIndex,
+        field: 'overtime_hours',
+        message: 'Overtime hours must be a valid number'
+      });
+    } else if (employee.overtime_hours < 0) {
+      errors.push({
+        row: rowIndex,
+        field: 'overtime_hours',
+        message: 'Overtime hours cannot be negative'
+      });
+    }
+  }
+
   // Mobile money format validation (if provided)
   if (employee.mobile_money && !validatePhone(employee.mobile_money)) {
     errors.push({

@@ -5,7 +5,8 @@ import { ProcessedEmployeesTable } from './ProcessedEmployeesTable';
 import { Button } from '../shared/Button';
 import { Card } from '../shared/Card';
 import { SuccessMessage } from '../shared/ErrorMessage';
-import { exportToExcel, downloadBlob, generateFilename } from '../../lib/excelHandler';
+import { exportProcessedToExcel, downloadBlob, generateFilename } from '../../lib/excelHandler';
+import { downloadAllPayslips, downloadGRAReport, downloadSSNITReport } from '../../lib/pdfGenerator';
 
 export function ProcessedResults() {
   const [state, dispatch] = usePayroll();
@@ -19,7 +20,7 @@ export function ProcessedResults() {
   const handleExportResults = () => {
     setIsExporting(true);
     try {
-      const blob = exportToExcel(processedEmployees, companySettings);
+      const blob = exportProcessedToExcel(processedEmployees, companySettings);
       const filename = generateFilename('payroll_results');
       downloadBlob(blob, filename);
     } catch (error) {
@@ -31,15 +32,30 @@ export function ProcessedResults() {
   };
 
   const handleDownloadPayslips = () => {
-    alert('PDF generation coming soon! This will generate individual payslips for all employees.');
+    try {
+      downloadAllPayslips(processedEmployees, companySettings);
+    } catch (error) {
+      console.error('Failed to generate payslips:', error);
+      alert('Failed to generate payslips. Please try again.');
+    }
   };
 
   const handleDownloadGRAReport = () => {
-    alert('PDF generation coming soon! This will generate the GRA PAYE report.');
+    try {
+      downloadGRAReport(processedEmployees, companySettings);
+    } catch (error) {
+      console.error('Failed to generate GRA report:', error);
+      alert('Failed to generate GRA report. Please try again.');
+    }
   };
 
   const handleDownloadSSNITReport = () => {
-    alert('PDF generation coming soon! This will generate the SSNIT contribution report.');
+    try {
+      downloadSSNITReport(processedEmployees, companySettings);
+    } catch (error) {
+      console.error('Failed to generate SSNIT report:', error);
+      alert('Failed to generate SSNIT report. Please try again.');
+    }
   };
 
   const handleReset = () => {
@@ -117,11 +133,13 @@ export function ProcessedResults() {
           </Button>
         </div>
 
-        <div className="mt-4 text-sm text-gray-500 bg-blue-50 p-3 rounded-md">
-          <p className="font-semibold text-blue-900 mb-1">Note:</p>
-          <p className="text-blue-800">
-            PDF generation for payslips and statutory reports is coming in the next phase.
-            For now, you can export to Excel which includes all calculated data.
+        <div className="mt-4 text-sm text-gray-500 bg-green-50 p-3 rounded-md">
+          <p className="font-semibold text-green-900 mb-1">Download Options:</p>
+          <p className="text-green-800">
+            <strong>Excel Results:</strong> Complete payroll data with all calculations in spreadsheet format.<br/>
+            <strong>Payslips (PDF):</strong> Individual payslips for all employees in a single PDF file.<br/>
+            <strong>GRA Report (PDF):</strong> Official PAYE monthly return for Ghana Revenue Authority.<br/>
+            <strong>SSNIT Report (PDF):</strong> Official contribution report for Social Security submission.
           </p>
         </div>
       </Card>

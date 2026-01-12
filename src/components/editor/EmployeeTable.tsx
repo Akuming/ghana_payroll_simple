@@ -15,7 +15,6 @@ export function EmployeeTable() {
   const columnDefs = useMemo<ColDef<Employee>[]>(() => [
     {
       headerName: '',
-      field: 'actions',
       width: 80,
       pinned: 'left',
       cellRenderer: (params: any) => {
@@ -42,11 +41,13 @@ export function EmployeeTable() {
       editable: true,
       cellEditor: 'agTextCellEditor',
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'employee_name');
         return hasError ? 'border-2 border-red-500' : '';
       },
       tooltipValueGetter: (params) => {
+        if (!params.data || !params.node) return '';
         const errors = validateEmployee(params.data, params.node.rowIndex || 0);
         const error = errors.find(e => e.field === 'employee_name');
         return error?.message || '';
@@ -67,11 +68,13 @@ export function EmployeeTable() {
       editable: true,
       cellEditor: 'agTextCellEditor',
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'tin');
         return hasError ? 'border-2 border-red-500' : '';
       },
       tooltipValueGetter: (params) => {
+        if (!params.data || !params.node) return 'Format: P followed by 10 digits';
         const errors = validateEmployee(params.data, params.node.rowIndex || 0);
         const error = errors.find(e => e.field === 'tin');
         return error?.message || 'Format: P followed by 10 digits';
@@ -84,11 +87,13 @@ export function EmployeeTable() {
       editable: true,
       cellEditor: 'agTextCellEditor',
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'ssnit_number');
         return hasError ? 'border-2 border-red-500' : '';
       },
       tooltipValueGetter: (params) => {
+        if (!params.data || !params.node) return 'Format: C followed by 11 digits';
         const errors = validateEmployee(params.data, params.node.rowIndex || 0);
         const error = errors.find(e => e.field === 'ssnit_number');
         return error?.message || 'Format: C followed by 11 digits';
@@ -108,11 +113,13 @@ export function EmployeeTable() {
         return params.value ? params.value.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
       },
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'basic_salary');
         return hasError ? 'border-2 border-red-500' : '';
       },
       tooltipValueGetter: (params) => {
+        if (!params.data || !params.node) return '';
         const errors = validateEmployee(params.data, params.node.rowIndex || 0);
         const error = errors.find(e => e.field === 'basic_salary');
         return error?.message || '';
@@ -132,10 +139,53 @@ export function EmployeeTable() {
         return params.value ? params.value.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
       },
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'allowances');
         return hasError ? 'border-2 border-red-500' : '';
       }
+    },
+    {
+      headerName: 'Bonus (GHS)',
+      field: 'bonus',
+      width: 130,
+      editable: true,
+      cellEditor: 'agNumberCellEditor',
+      cellEditorParams: {
+        min: 0,
+        precision: 2
+      },
+      valueFormatter: (params) => {
+        return params.value ? params.value.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+      },
+      cellClass: (params) => {
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
+        const hasError = errors.some(e => e.field === 'bonus');
+        return hasError ? 'border-2 border-red-500' : '';
+      },
+      tooltipValueGetter: () => 'Optional - taxed at 5% flat rate'
+    },
+    {
+      headerName: 'Overtime Hrs',
+      field: 'overtime_hours',
+      width: 120,
+      editable: true,
+      cellEditor: 'agNumberCellEditor',
+      cellEditorParams: {
+        min: 0,
+        precision: 1
+      },
+      valueFormatter: (params) => {
+        return params.value ? params.value.toFixed(1) : '';
+      },
+      cellClass: (params) => {
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
+        const hasError = errors.some(e => e.field === 'overtime_hours');
+        return hasError ? 'border-2 border-red-500' : '';
+      },
+      tooltipValueGetter: () => 'Optional - paid at 1.5x hourly rate'
     },
     {
       headerName: 'Bank Name',
@@ -158,11 +208,13 @@ export function EmployeeTable() {
       editable: true,
       cellEditor: 'agTextCellEditor',
       cellClass: (params) => {
-        const errors = validateEmployee(params.data, params.node.rowIndex || 0);
+        if (!params.data) return '';
+        const errors = validateEmployee(params.data, params.node?.rowIndex || 0);
         const hasError = errors.some(e => e.field === 'mobile_money');
         return hasError ? 'border-2 border-red-500' : '';
       },
       tooltipValueGetter: (params) => {
+        if (!params.data || !params.node) return 'Optional - Ghana phone format';
         const errors = validateEmployee(params.data, params.node.rowIndex || 0);
         const error = errors.find(e => e.field === 'mobile_money');
         return error?.message || 'Optional - Ghana phone format';
@@ -212,6 +264,8 @@ export function EmployeeTable() {
       ssnit_number: '',
       basic_salary: 0,
       allowances: 0,
+      bonus: 0,
+      overtime_hours: 0,
       bank_name: '',
       account_number: '',
       mobile_money: ''
@@ -284,7 +338,8 @@ export function EmployeeTable() {
           <li>• Press Tab to move to the next cell, Enter to move down</li>
           <li>• Employee ID is auto-generated if left blank</li>
           <li>• Hover over cells with red borders to see validation errors</li>
-          <li>• Use the filter icons in column headers to search</li>
+          <li>• <strong>Bonus:</strong> Taxed at flat 5% rate (separate from PAYE)</li>
+          <li>• <strong>Overtime:</strong> Paid at 1.5x hourly rate, taxed through PAYE</li>
         </ul>
       </div>
     </div>

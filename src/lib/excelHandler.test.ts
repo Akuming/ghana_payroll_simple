@@ -17,19 +17,23 @@ describe('EXCEL_COLUMNS', () => {
     expect(EXCEL_COLUMNS.ssnit_number).toBe('D');
     expect(EXCEL_COLUMNS.basic_salary).toBe('E');
     expect(EXCEL_COLUMNS.allowances).toBe('F');
-    expect(EXCEL_COLUMNS.bank_name).toBe('G');
-    expect(EXCEL_COLUMNS.account_number).toBe('H');
-    expect(EXCEL_COLUMNS.mobile_money).toBe('I');
+    expect(EXCEL_COLUMNS.bonus).toBe('G');
+    expect(EXCEL_COLUMNS.overtime_hours).toBe('H');
+    expect(EXCEL_COLUMNS.bank_name).toBe('I');
+    expect(EXCEL_COLUMNS.account_number).toBe('J');
+    expect(EXCEL_COLUMNS.mobile_money).toBe('K');
   });
 
   test('has correct output column mappings', () => {
-    expect(EXCEL_COLUMNS.gross_pay).toBe('J');
-    expect(EXCEL_COLUMNS.ssnit_employee).toBe('K');
-    expect(EXCEL_COLUMNS.ssnit_employer).toBe('L');
-    expect(EXCEL_COLUMNS.taxable_income).toBe('M');
-    expect(EXCEL_COLUMNS.paye).toBe('N');
-    expect(EXCEL_COLUMNS.total_deductions).toBe('O');
-    expect(EXCEL_COLUMNS.net_pay).toBe('P');
+    expect(EXCEL_COLUMNS.overtime_pay).toBe('L');
+    expect(EXCEL_COLUMNS.gross_pay).toBe('M');
+    expect(EXCEL_COLUMNS.ssnit_employee).toBe('N');
+    expect(EXCEL_COLUMNS.ssnit_employer).toBe('O');
+    expect(EXCEL_COLUMNS.taxable_income).toBe('P');
+    expect(EXCEL_COLUMNS.paye).toBe('Q');
+    expect(EXCEL_COLUMNS.bonus_tax).toBe('R');
+    expect(EXCEL_COLUMNS.total_deductions).toBe('S');
+    expect(EXCEL_COLUMNS.net_pay).toBe('T');
   });
 });
 
@@ -111,11 +115,15 @@ describe('exportProcessedToExcel', () => {
       ssnit_number: 'C00123456789',
       basic_salary: 5000,
       allowances: 500,
+      bonus: 0,
+      overtime_hours: 0,
+      overtime_pay: 0,
       gross_pay: 5500,
       ssnit_employee: 275,
       ssnit_employer: 650,
       taxable_income: 5225,
       paye: 904.75,
+      bonus_tax: 0,
       total_deductions: 1179.75,
       net_pay: 4320.25
     }

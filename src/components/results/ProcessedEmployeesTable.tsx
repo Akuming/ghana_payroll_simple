@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef } from 'ag-grid-community';
+import type { ColDef, CellStyle } from 'ag-grid-community';
 import type { ProcessedEmployee } from '../../types/employee';
 import { formatCurrency } from '../../utils/formatting';
 
@@ -50,13 +50,31 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         filter: 'agNumberColumnFilter',
       },
       {
+        headerName: 'Bonus',
+        field: 'bonus',
+        width: 110,
+        valueFormatter: (params) => formatCurrency(params.value || 0),
+        type: 'numericColumn',
+        filter: 'agNumberColumnFilter',
+        cellStyle: { color: '#0891b2' } as CellStyle,
+      },
+      {
+        headerName: 'OT Pay',
+        field: 'overtime_pay',
+        width: 110,
+        valueFormatter: (params) => formatCurrency(params.value || 0),
+        type: 'numericColumn',
+        filter: 'agNumberColumnFilter',
+        cellStyle: { color: '#0d9488' } as CellStyle,
+      },
+      {
         headerName: 'Gross Pay',
         field: 'gross_pay',
         width: 130,
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { fontWeight: 'bold' },
+        cellStyle: { fontWeight: 'bold' } as CellStyle,
       },
       {
         headerName: 'SSNIT (Employee)',
@@ -65,7 +83,7 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { color: '#7c3aed' },
+        cellStyle: { color: '#7c3aed' } as CellStyle,
       },
       {
         headerName: 'SSNIT (Employer)',
@@ -74,7 +92,7 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { color: '#6366f1' },
+        cellStyle: { color: '#6366f1' } as CellStyle,
       },
       {
         headerName: 'Taxable Income',
@@ -91,7 +109,16 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { color: '#ea580c' },
+        cellStyle: { color: '#ea580c' } as CellStyle,
+      },
+      {
+        headerName: 'Bonus Tax',
+        field: 'bonus_tax',
+        width: 110,
+        valueFormatter: (params) => formatCurrency(params.value || 0),
+        type: 'numericColumn',
+        filter: 'agNumberColumnFilter',
+        cellStyle: { color: '#d946ef' } as CellStyle,
       },
       {
         headerName: 'Total Deductions',
@@ -100,7 +127,7 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { fontWeight: 'bold', color: '#dc2626' },
+        cellStyle: { fontWeight: 'bold', color: '#dc2626' } as CellStyle,
       },
       {
         headerName: 'Net Pay',
@@ -109,7 +136,7 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         valueFormatter: (params) => formatCurrency(params.value || 0),
         type: 'numericColumn',
         filter: 'agNumberColumnFilter',
-        cellStyle: { fontWeight: 'bold', color: '#16a34a' },
+        cellStyle: { fontWeight: 'bold', color: '#16a34a' } as CellStyle,
         pinned: 'right',
       },
     ],
@@ -161,22 +188,28 @@ export function ProcessedEmployeesTable({ processedEmployees }: ProcessedEmploye
         <h4 className="font-semibold mb-2 text-gray-700">Column Legend:</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-600">
           <div>
-            <span className="font-medium">Gross Pay:</span> Basic Salary + Allowances
+            <span className="font-medium">OT Pay:</span> Overtime Hours x (Basic/176) x 1.5
           </div>
           <div>
-            <span className="font-medium">SSNIT Employee:</span> 5.5% of Basic Salary
+            <span className="font-medium">Gross Pay:</span> Basic + Allowances + OT Pay + Bonus
+          </div>
+          <div>
+            <span className="font-medium">SSNIT Employee:</span> 5.5% of Basic Salary only
           </div>
           <div>
             <span className="font-medium">SSNIT Employer:</span> 13% of Basic Salary (company pays)
           </div>
           <div>
-            <span className="font-medium">Taxable Income:</span> Gross Pay - SSNIT Employee
+            <span className="font-medium">Taxable Income:</span> Gross Pay - SSNIT - Bonus
           </div>
           <div>
             <span className="font-medium">PAYE Tax:</span> Progressive tax on Taxable Income
           </div>
           <div>
-            <span className="font-medium">Total Deductions:</span> SSNIT Employee + PAYE
+            <span className="font-medium">Bonus Tax:</span> Flat 5% on Bonus amount
+          </div>
+          <div>
+            <span className="font-medium">Total Deductions:</span> SSNIT + PAYE + Bonus Tax
           </div>
           <div>
             <span className="font-medium">Net Pay:</span> Gross Pay - Total Deductions

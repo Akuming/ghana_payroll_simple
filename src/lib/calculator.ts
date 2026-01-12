@@ -1,4 +1,11 @@
-import { TAX_BRACKETS, SSNIT_EMPLOYEE_RATE, SSNIT_EMPLOYER_RATE } from './constants';
+import {
+  TAX_BRACKETS,
+  SSNIT_EMPLOYEE_RATE,
+  SSNIT_EMPLOYER_RATE,
+  BONUS_TAX_RATE,
+  STANDARD_MONTHLY_HOURS,
+  OVERTIME_MULTIPLIER
+} from './constants';
 import type { Employee, ProcessedEmployee } from '../types/employee';
 
 /**
@@ -80,15 +87,67 @@ export function calculateSSNIT(basicSalary: number): {
 }
 
 /**
+ * Calculate bonus tax (flat rate)
+ *
+ * In Ghana, bonuses are taxed at a flat 5% rate, NOT using progressive PAYE brackets.
+ * This is separate from regular income tax.
+ *
+ * @param bonus - The bonus amount
+ * @returns The calculated bonus tax
+ *
+ * @example
+ * calculateBonusTax(1000) // returns 50.00 (5% of 1000)
+ */
+export function calculateBonusTax(bonus: number): number {
+  if (bonus <= 0) {
+    return 0;
+  }
+  return round(bonus * BONUS_TAX_RATE, 2);
+}
+
+/**
+ * Calculate overtime pay
+ *
+ * Overtime is calculated as:
+ * 1. Hourly rate = Basic Salary / Standard Monthly Hours (176)
+ * 2. Overtime Pay = Overtime Hours × Hourly Rate × Overtime Multiplier (1.5)
+ *
+ * Note: Overtime pay is added to gross pay and taxed through normal PAYE.
+ *
+ * @param basicSalary - The employee's basic salary
+ * @param overtimeHours - Number of overtime hours worked
+ * @returns The calculated overtime pay
+ *
+ * @example
+ * // For basic salary of 5000 GHS and 10 overtime hours:
+ * // Hourly rate = 5000 / 176 = 28.41
+ * // Overtime pay = 10 × 28.41 × 1.5 = 426.14
+ * calculateOvertimePay(5000, 10) // returns 426.14
+ */
+export function calculateOvertimePay(basicSalary: number, overtimeHours: number): number {
+  if (basicSalary <= 0 || overtimeHours <= 0) {
+    return 0;
+  }
+
+  const hourlyRate = basicSalary / STANDARD_MONTHLY_HOURS;
+  const overtimePay = overtimeHours * hourlyRate * OVERTIME_MULTIPLIER;
+
+  return round(overtimePay, 2);
+}
+
+/**
  * Process a single employee's payroll
- * Calculates all payroll components: gross pay, SSNIT, PAYE, and net pay
+ * Calculates all payroll components: gross pay, overtime, bonus, SSNIT, PAYE, and net pay
  *
  * Calculation order is critical:
- * 1. Gross Pay = Basic Salary + Allowances
- * 2. SSNIT Employee = Basic Salary × 5.5%
- * 3. Taxable Income = Gross Pay - SSNIT Employee
- * 4. PAYE = Progressive tax on Taxable Income
- * 5. Net Pay = Gross Pay - SSNIT Employee - PAYE
+ * 1. Overtime Pay = (Basic Salary / 176) × Overtime Hours × 1.5
+ * 2. Gross Pay = Basic Salary + Allowances + Overtime Pay + Bonus
+ * 3. SSNIT Employee = Basic Salary × 5.5% (on basic only, not overtime/bonus)
+ * 4. Taxable Income = Gross Pay - SSNIT Employee - Bonus (bonus taxed separately)
+ * 5. PAYE = Progressive tax on Taxable Income
+ * 6. Bonus Tax = Bonus × 5% (flat rate)
+ * 7. Total Deductions = SSNIT Employee + PAYE + Bonus Tax
+ * 8. Net Pay = Gross Pay - Total Deductions
  *
  * @param employee - The employee data
  * @returns Complete employee data with all calculated fields
@@ -99,43 +158,62 @@ export function calculateSSNIT(basicSalary: number): {
  *   tin: 'P0012345678',
  *   ssnit_number: 'C00123456789',
  *   basic_salary: 5000,
- *   allowances: 500
+ *   allowances: 500,
+ *   bonus: 1000,
+ *   overtime_hours: 10
  * };
  *
  * const result = processEmployee(employee);
- * // result.gross_pay: 5500.00
+ * // result.overtime_pay: 426.14
+ * // result.gross_pay: 6926.14 (5000 + 500 + 426.14 + 1000)
  * // result.ssnit_employee: 275.00
- * // result.paye: 904.75
- * // result.net_pay: 4320.25
+ * // result.taxable_income: 5651.14 (gross - ssnit - bonus)
+ * // result.paye: 1011.45
+ * // result.bonus_tax: 50.00
+ * // result.total_deductions: 1336.45
+ * // result.net_pay: 5589.69
  */
 export function processEmployee(employee: Employee): ProcessedEmployee {
   const basicSalary = employee.basic_salary || 0;
   const allowances = employee.allowances || 0;
+  const bonus = employee.bonus || 0;
+  const overtimeHours = employee.overtime_hours || 0;
 
-  // Step 1: Calculate gross pay
-  const grossPay = basicSalary + allowances;
+  // Step 1: Calculate overtime pay
+  const overtimePay = calculateOvertimePay(basicSalary, overtimeHours);
 
-  // Step 2: Calculate SSNIT (based on basic salary only)
+  // Step 2: Calculate gross pay (includes overtime and bonus)
+  const grossPay = basicSalary + allowances + overtimePay + bonus;
+
+  // Step 3: Calculate SSNIT (based on basic salary only, not overtime/bonus)
   const ssnit = calculateSSNIT(basicSalary);
 
-  // Step 3: Calculate taxable income (gross pay minus employee SSNIT)
-  const taxableIncome = grossPay - ssnit.employee;
+  // Step 4: Calculate taxable income
+  // Note: Bonus is excluded from taxable income as it's taxed separately at flat rate
+  const taxableIncome = grossPay - ssnit.employee - bonus;
 
-  // Step 4: Calculate PAYE on taxable income
+  // Step 5: Calculate PAYE on taxable income (excludes bonus)
   const paye = calculatePAYE(taxableIncome);
 
-  // Step 5: Calculate total deductions and net pay
-  const totalDeductions = ssnit.employee + paye;
+  // Step 6: Calculate bonus tax (flat 5% rate)
+  const bonusTax = calculateBonusTax(bonus);
+
+  // Step 7: Calculate total deductions and net pay
+  const totalDeductions = ssnit.employee + paye + bonusTax;
   const netPay = grossPay - totalDeductions;
 
   return {
     ...employee,
-    allowances: allowances, // Ensure allowances is always set (defaults to 0)
+    allowances: allowances,
+    bonus: bonus,
+    overtime_hours: overtimeHours,
+    overtime_pay: round(overtimePay, 2),
     gross_pay: round(grossPay, 2),
     ssnit_employee: round(ssnit.employee, 2),
     ssnit_employer: round(ssnit.employer, 2),
     taxable_income: round(taxableIncome, 2),
     paye: round(paye, 2),
+    bonus_tax: round(bonusTax, 2),
     total_deductions: round(totalDeductions, 2),
     net_pay: round(netPay, 2)
   };
@@ -164,10 +242,13 @@ export function calculateSummaryTotals(processedEmployees: ProcessedEmployee[]) 
       employeeCount: acc.employeeCount + 1,
       totalBasicSalary: acc.totalBasicSalary + emp.basic_salary,
       totalAllowances: acc.totalAllowances + (emp.allowances || 0),
+      totalBonus: acc.totalBonus + (emp.bonus || 0),
+      totalOvertimePay: acc.totalOvertimePay + (emp.overtime_pay || 0),
       totalGrossPay: acc.totalGrossPay + emp.gross_pay,
       totalSSNITEmployee: acc.totalSSNITEmployee + emp.ssnit_employee,
       totalSSNITEmployer: acc.totalSSNITEmployer + emp.ssnit_employer,
       totalPAYE: acc.totalPAYE + emp.paye,
+      totalBonusTax: acc.totalBonusTax + (emp.bonus_tax || 0),
       totalDeductions: acc.totalDeductions + emp.total_deductions,
       totalNetPay: acc.totalNetPay + emp.net_pay
     }),
@@ -175,10 +256,13 @@ export function calculateSummaryTotals(processedEmployees: ProcessedEmployee[]) 
       employeeCount: 0,
       totalBasicSalary: 0,
       totalAllowances: 0,
+      totalBonus: 0,
+      totalOvertimePay: 0,
       totalGrossPay: 0,
       totalSSNITEmployee: 0,
       totalSSNITEmployer: 0,
       totalPAYE: 0,
+      totalBonusTax: 0,
       totalDeductions: 0,
       totalNetPay: 0
     }
@@ -189,11 +273,14 @@ export function calculateSummaryTotals(processedEmployees: ProcessedEmployee[]) 
     employeeCount: totals.employeeCount,
     totalBasicSalary: round(totals.totalBasicSalary, 2),
     totalAllowances: round(totals.totalAllowances, 2),
+    totalBonus: round(totals.totalBonus, 2),
+    totalOvertimePay: round(totals.totalOvertimePay, 2),
     totalGrossPay: round(totals.totalGrossPay, 2),
     totalSSNITEmployee: round(totals.totalSSNITEmployee, 2),
     totalSSNITEmployer: round(totals.totalSSNITEmployer, 2),
     totalSSNIT: round(totals.totalSSNITEmployee + totals.totalSSNITEmployer, 2),
     totalPAYE: round(totals.totalPAYE, 2),
+    totalBonusTax: round(totals.totalBonusTax, 2),
     totalDeductions: round(totals.totalDeductions, 2),
     totalNetPay: round(totals.totalNetPay, 2)
   };

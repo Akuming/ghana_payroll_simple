@@ -14,6 +14,13 @@ export const TAX_BRACKETS = [
 export const SSNIT_EMPLOYEE_RATE = 0.055;  // 5.5% (Tier 1 + 2)
 export const SSNIT_EMPLOYER_RATE = 0.13;   // 13.0%
 
+// Bonus Tax Rate (Flat rate - not progressive)
+export const BONUS_TAX_RATE = 0.05;  // 5% flat tax on bonuses
+
+// Overtime Settings
+export const STANDARD_MONTHLY_HOURS = 176;  // 8 hours × 22 working days
+export const OVERTIME_MULTIPLIER = 1.5;     // 150% of hourly rate for overtime
+
 // Validation Regex Patterns
 export const TIN_REGEX = /^P\d{10}$/;         // P + 10 digits
 export const SSNIT_REGEX = /^C\d{11}$/;       // C + 11 digits

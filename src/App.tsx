@@ -5,7 +5,6 @@ import { ActionBar } from './components/editor/ActionBar'
 import { FileUpload } from './components/upload/FileUpload'
 import { TemplateDownload } from './components/upload/TemplateDownload'
 import { ProcessedResults } from './components/results/ProcessedResults'
-import { Button } from './components/shared/Button'
 import { Card } from './components/shared/Card'
 import { InfoMessage } from './components/shared/ErrorMessage'
 import { formatEmployeeCount } from './utils/formatting'
@@ -13,7 +12,7 @@ import { getStorageInfo } from './lib/storage'
 
 function App() {
   const [state, dispatch] = usePayroll()
-  const { currentTab, employees, processedEmployees } = state
+  const { currentTab, processedEmployees } = state
 
   const storageInfo = getStorageInfo()
 
